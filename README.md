@@ -77,6 +77,6 @@ Unauthorized use, deployment, or testing on real systems is illegal and unethica
 Ben Hamou Mehdi	
 Cybersecurity student
 
-# Final Note
+## Final Note
 
 This project demonstrates applied cybersecurity concepts through a realistic and structured system design, emphasizing defensive security, monitoring, and responsible testing.
