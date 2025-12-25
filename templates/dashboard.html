@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arctic Research Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header {
+            text-align: center;
+            padding: 30px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #475569;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .status-card {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+        .status-card.critical { border-left-color: #ef4444; }
+        .status-card.warning { border-left-color: #f59e0b; }
+        .status-card.success { border-left-color: #10b981; }
+        .status-card h3 {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .status-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-container {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+        }
+        .chart-container h2 {
+            color: #60a5fa;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .data-card {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 10px;
+            color: #94a3b8;
+            border-bottom: 1px solid #475569;
+        }
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #475569;
+        }
+        .alert-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .alert-critical { background: #dc2626; color: white; }
+        .alert-warning { background: #d97706; color: white; }
+        .alert-info { background: #2563eb; color: white; }
+        .refresh-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px;
+        }
+        .refresh-btn:hover { background: #2563eb; }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        .pulse { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Arctic Research Monitoring Dashboard</h1>
+            <p>Real-time satellite telemetry and security monitoring</p>
+            <div class="controls">
+                <button class="refresh-btn" onclick="loadAllData()">Refresh Data</button>
+                <button class="refresh-btn" onclick="simulateAttack()">Test Security</button>
+            </div>
+        </div>
+        
+        <div class="status-grid" id="statusGrid">
+            <!-- Filled by JavaScript -->
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h2>Temperature History</h2>
+                <div id="temperatureChart" style="height: 300px;"></div>
+            </div>
+            <div class="chart-container">
+                <h2>Security Events</h2>
+                <canvas id="securityChart" height="300"></canvas>
+            </div>
+        </div>
+        
+        <div class="data-grid">
+            <div class="data-card">
+                <h2>Latest Telemetry</h2>
+                <table class="data-table" id="telemetryTable">
+                    <thead>
+                        <tr>
+                            <th>Sensor</th>
+                            <th>Temperature</th>
+                            <th>Humidity</th>
+                            <th>Battery</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="telemetryBody">
+                        <!-- Filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="data-card">
+                <h2>Security Events</h2>
+                <table class="data-table" id="securityTable">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Source</th>
+                            <th>Details</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="securityBody">
+                        <!-- Filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let telemetryChart;
+        let securityChart;
+        
+        function loadAllData() {
+            loadTelemetry();
+            loadSecurity();
+            loadStats();
+            loadTemperatureChart();
+        }
+        
+        function loadTelemetry() {
+            fetch('/api/telemetry')
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('telemetryBody');
+                    tbody.innerHTML = '';
+                    
+                    data.telemetry.forEach(item => {
+                        const row = `
+                            <tr>
+                                <td>${item.sensor_id}</td>
+                                <td>${item.temperature}°C</td>
+                                <td>${item.humidity}%</td>
+                                <td>${item.battery}%</td>
+                                <td>${new Date(item.timestamp).toLocaleTimeString()}</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                    
+                    updateStatus('lastUpdate', new Date().toLocaleTimeString());
+                    updateStatus('messageCount', data.status.message_count);
+                    updateStatus('satelliteStatus', data.status.satellite_connected ? '✅ Connected' : '❌ Disconnected');
+                });
+        }
+        
+        function loadSecurity() {
+            fetch('/api/security')
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('securityBody');
+                    tbody.innerHTML = '';
+                    
+                    data.events.forEach(event => {
+                        const severityClass = `alert-${event.severity.toLowerCase()}`;
+                        const row = `
+                            <tr>
+                                <td><span class="alert-badge ${severityClass}">${event.type}</span></td>
+                                <td>${event.source || 'N/A'}</td>
+                                <td>${event.details}</td>
+                                <td>${new Date(event.time).toLocaleTimeString()}</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                    
+                    updateSecurityChart(data.events);
+                });
+        }
+        
+        function loadStats() {
+            fetch('/api/stats')
+                .then(r => r.json())
+                .then(data => {
+                    updateStatus('totalMessages', data.telemetry_count);
+                    updateStatus('highAlerts', data.high_alerts);
+                    updateStatus('avgTemperature', data.averages.temperature + '°C');
+                    updateStatus('avgHumidity', data.averages.humidity + '%');
+                    updateStatus('avgBattery', data.averages.battery + '%');
+                });
+        }
+        
+        function loadTemperatureChart() {
+            fetch('/api/charts/temperature')
+                .then(r => r.json())
+                .then(data => {
+                    Plotly.newPlot('temperatureChart', data.data, data.layout);
+                });
+        }
+        
+        function updateStatus(id, value) {
+            const element = document.getElementById(`status-${id}`);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+        
+        function updateSecurityChart(events) {
+            const ctx = document.getElementById('securityChart').getContext('2d');
+            
+            // Group by severity
+            const counts = {
+                HIGH: 0,
+                MEDIUM: 0,
+                LOW: 0
+            };
+            
+            events.forEach(event => {
+                if (counts[event.severity] !== undefined) {
+                    counts[event.severity]++;
+                }
+            });
+            
+            if (securityChart) {
+                securityChart.destroy();
+            }
+            
+            securityChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High', 'Medium', 'Low'],
+                    datasets: [{
+                        data: [counts.HIGH, counts.MEDIUM, counts.LOW],
+                        backgroundColor: [
+                            '#ef4444',
+                            '#f59e0b',
+                            '#3b82f6'
+                        ],
+                        borderColor: '#1e293b',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#e2e8f0' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function simulateAttack() {
+            fetch('/api/security')
+                .then(r => r.json())
+                .then(data => {
+                    // Add simulated attack event
+                    const simulatedEvents = [
+                        {
+                            type: "SIMULATED_ATTACK",
+                            source: "192.168.1.10",
+                            details: "Test: Data injection attempt",
+                            severity: "HIGH",
+                            time: new Date().toISOString()
+                        },
+                        {
+                            type: "SIMULATED_FLOOD",
+                            source: "192.168.1.10",
+                            details: "Test: Flood attack simulation",
+                            severity: "MEDIUM",
+                            time: new Date().toISOString()
+                        }
+                    ];
+                    
+                    // Update display
+                    const tbody = document.getElementById('securityBody');
+                    simulatedEvents.forEach(event => {
+                        const severityClass = `alert-${event.severity.toLowerCase()}`;
+                        const row = `
+                            <tr class="pulse">
+                                <td><span class="alert-badge ${severityClass}">${event.type}</span></td>
+                                <td>${event.source}</td>
+                                <td>${event.details}</td>
+                                <td>${new Date(event.time).toLocaleTimeString()}</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML = row + tbody.innerHTML;
+                    });
+                    
+                    alert('Security test simulated! Check security events.');
+                });
+        }
+        
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create status cards
+            const statusGrid = document.getElementById('statusGrid');
+            const statusItems = [
+                { id: 'satelliteStatus', label: 'Satellite Status', value: 'Loading...', class: 'success' },
+                { id: 'messageCount', label: 'Messages Received', value: '0', class: 'success' },
+                { id: 'lastUpdate', label: 'Last Update', value: 'Never', class: 'success' },
+                { id: 'highAlerts', label: 'High Severity Alerts', value: '0', class: 'critical' },
+                { id: 'avgTemperature', label: 'Avg Temperature', value: '0°C', class: 'success' },
+                { id: 'avgBattery', label: 'Avg Battery', value: '0%', class: 'success' }
+            ];
+            
+            statusItems.forEach(item => {
+                statusGrid.innerHTML += `
+                    <div class="status-card ${item.class}">
+                        <h3>${item.label}</h3>
+                        <div class="status-value" id="status-${item.id}">${item.value}</div>
+                    </div>
+                `;
+            });
+            
+            // Load all data
+            loadAllData();
+            
+            // Auto-refresh every 10 seconds
+            setInterval(loadAllData, 10000);
+        });
+    </script>
+</body>
+</html>
