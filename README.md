@@ -4,9 +4,8 @@ This project implements a secure, distributed IoT communication architecture sim
 The project focuses on confidentiality, integrity, availability, monitoring, and authorized security testing, in a controlled environment.
 
 ## System Architecture
-IoT Sensor  →  Satellite / Core (IDS)  →  Ground Station (Dashboard)
-                         ↑
-             Authorized Security Testing
+
+<img width="1536" height="1024" alt="sat" src="https://github.com/user-attachments/assets/5b7b667b-8cb6-4199-a4e0-392fb65cdab1" />
 
 ### Components:
 IoT Sensor: Generates and encrypts telemetry data
