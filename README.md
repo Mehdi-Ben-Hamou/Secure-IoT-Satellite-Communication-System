@@ -5,7 +5,7 @@ The project focuses on confidentiality, integrity, availability, monitoring, and
 
 ## System Architecture
 
-<img width="1536" height="1024" alt="sat" src="https://github.com/user-attachments/assets/5b7b667b-8cb6-4199-a4e0-392fb65cdab1" />
+<img width="1536" height="1024" alt="sat" src="https://github.com/user-attachments/assets/3c6b7520-b3e8-4f63-9e2a-f4cd12a583cf" />
 
 ### Components:
 IoT Sensor: Generates and encrypts telemetry data
